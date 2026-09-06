@@ -12,7 +12,7 @@ rem     Выходные файлы обработки, имеющие расш�
 rem     ******************
 
 rem set korpath=d:\DISK\Projects\KorsarPro\KORSAR-MT.exe
-set kutpath=c:\Users\abarinov\Documents\Work\KORSAR\EXE\RUNKUT.bat
+set kutpath=%~dp0..\kutil.exe
 
 rem проверка наличия аргументов
 if -%1-==-- (
@@ -78,7 +78,7 @@ rem   Запускаем KUTIL в расчетной директории
 cd %calcDir%
 echo *** Run KUTIL in %CD%
 echo.
-start /BELOWNORMAL /WAIT %kutpath%
+start /BELOWNORMAL /WAIT cmd /c ""%kutpath%" > log_proc.txt"
 echo *** Processing finished
 echo.
 

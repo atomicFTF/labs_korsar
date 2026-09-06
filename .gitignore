@@ -1,6 +1,8 @@
 **/*.cdr
 doc/*.cdr
 **/*.docx
+**/*.exe
+nwsp_dat
 /distr/
 /data/
 /done/

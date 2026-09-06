@@ -14,7 +14,7 @@ rem     Для остановки расчета в консоли расчет�
 rem     ******************
 
 rem set korpath=d:\DISK\Projects\KorsarPro\KORSAR-MT.exe
-set korpath=c:\Users\abarinov\Documents\Work\KORSAR\EXE\RUNKOR.bat
+set korpath=%~dp0..\korsar.exe
 
 rem проверка наличия аргументов
 if -%1-==-- (
@@ -69,9 +69,11 @@ echo Source directory: %1% >>log_start.txt
 echo.
 
 if not -%3-==-- (
-start /BELOWNORMAL /WAIT /AFFINITY %3 %korpath%
+    rem Запуск на конкретном ядре с перенаправлением вывода
+    start /BELOWNORMAL /WAIT /AFFINITY %3 cmd /c ""%korpath%" > log_calc.txt"
 ) else (
-start /BELOWNORMAL /WAIT %korpath%
+    rem Запуск без привязки к ядру с перенаправлением вывода
+    start /BELOWNORMAL /WAIT cmd /c ""%korpath%" > log_calc.txt"
 )
 
 echo *** Calculation finished
