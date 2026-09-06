@@ -1,3 +1,9 @@
 **/*.cdr
 doc/*.cdr
-темы_работ.txt
+**/*.docx
+/distr/
+/data/
+/done/
+/files/
+result/
+results/
