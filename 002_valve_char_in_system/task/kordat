@@ -1,0 +1,225 @@
+!!bb Ключи основной процедуры
+restart = 0;
+title = 'VD.035.004';
+dt_max = 0.01;
+dt_out = 0.1;
+fin_tim = 5000;          
+dt_sav = 0;
+append_res = 1;
+append_sav = 0;
+check_only = 0;
+local_err = 1.0e-4;
+ngas = 'H2O, N2, O2';
+dt_diag = dt_out;
+inf = 1;
+accel_stat = 0;
+nwsp_dat='nwsp_dat';
+_tauRest = 0.;
+_debug = 0;
+_diag = 0;
+_monPer = 5.0;
+!!eb
+
+!!bb Общие глобальные переменные
+_t0C = 273.15;
+_tOffset = _t0C;
+_pi = 3.1415927;
+_gg = 9.81;
+_xgAir(1:4) = 0.,0.,0.757,0.243;
+_xgN2(1:4) = 0.,0.,9.999e-1,0.;
+_pAtm = 101.3e+03;
+_tAtm = 20.+_tOffset;
+_MPa = 1.e6;
+_kPa = 1.e3;
+_kgs = 98066.5;
+_MWt = 1.e6;
+_kWt = 1.e3;
+_atm = 101325.;
+! Наши переменные
+_s_valve = 0.0;
+_time_step = 10.0;       
+_sensor(1:20) = 0.;
+
+! Массив КГС и переключатели
+_kgs_array(1:5) = 28., 70., 140., 210., 350.;
+_kgs_index = 1;
+_kgs_current = 28.;
+_kgs_time_step = 1000.0;  
+!!eb
+
+_n0 = 4;
+
+MAIN:
+LAYOUT
+CH1/i - BVOL_T1;
+CH1/o - BVOL_T1;
+CH1(2) - CPUMP1;
+CH1(3) - VAL1;
+CH1(4) - LR1;
+END
+
+CALL _Ch;
+CALL _Bv;
+CALL _Lr;
+CALL _Val;
+CALL _Pmp;
+
+SET _CalcSensor;
+SET _ControlValve;
+SET _PumpControl;
+SET _KgsSwitcher;  
+
+OUT _Out;
+END
+
+!!bb DATAs
+
+DATA _Ch
+  MDL = 'CH';
+  ELS = 1;
+  IF(NV==1) THEN
+    N = _n0;
+    S(1) = 0.7854*(0.05**2);
+    S(2) = 0.7854*(0.05**2);
+    S(3) = 0.7854*(0.1**2);
+    S(4) = 0.7854*(0.1**2);
+    TYPE  = 0;
+    PR(1) = _pi*0.05; PR(2) = _pi*0.05; 
+    PR(3) = _pi*0.1; PR(4) = _pi*0.1;
+    DZ(1) = 1./N; DZ(2) = 1./N; DZ(3) = 1./N; DZ(4) = 1./N;
+    DH = 0.; ROU = 2e-5;
+    P = 1.*_MPa;
+    T(1,1:N) = 20.+_t0C; T(2,1:N) = 20.+_t0C;
+    VOID = 0.;
+    XNG(1,1:N) = _xgAir(1); XNG(2,1:N) = _xgAir(2);
+    XNG(3,1:N) = _xgAir(3); XNG(4,1:N) = _xgAir(4);
+  ENDIF
+END
+
+DATA _Bv
+  MDL = 'BVOL_T'; ELS = 1;
+  IF(NV==1) THEN
+    P = 1.*_MPa; VOID = 0.; T = 20.+_t0C; XNG = _xgAir;
+  ENDIF
+END
+
+DATA _Lr
+  MDL = 'LR'; ELS = 1;
+  IF(NV==1) THEN
+    CSI1 = 28.; CSI2 = 28.;
+  ENDIF
+END
+
+DATA _Val
+  MDL = 'VAL'; ELS = 1;
+  IF(NV==1) THEN
+    K = 2; F(1:K,1) = 0., 1.; F(1:K,2) = 0., 1.; F(1:K,3) = 0., 1.;
+    CSI1 = 1.; CSI2 = 1.; S = 0.7854*(0.05**2);
+  ENDIF
+END
+
+DATA _Pmp
+  MDL = 'CPUMP'; ELS = 1;
+  IF(NV==1) THEN
+    MODE = 2; 
+    QN = 22.5 / 3600.; 
+    DPN = 20.8 * 9810.;
+    
+    KH(1,1:2)=0., 1.; 
+    KH(2,1:2)=0., 0.; 
+    KM(1,1:2)=0., 1.; 
+    KM(2,1:2)=0., 0.;
+    
+    CM1(1,1:3)=-1., 0., 1.; 
+    CM1(2,1:3)=1., 1., 0.65; 
+    CM1(3,1:3)=0., 0., 0.;
+    
+    CM2(1,1:3)=-1., 0., 1.; 
+    CM2(2,1:3)=1., 1., 1.; 
+    CM2(3,1:3)=0., 0., 0.;
+    
+    CM3(1,1:3)=-1., 0., 1.; 
+    CM3(2,1:3)=-1., -1., 1.; 
+    CM3(3,1:3)=0., 0., 0.;
+    
+    CM4(1,1:3)=-1., 0., 1.; 
+    CM4(2,1:3)=-1., -1., 0.65; 
+    CM4(3,1:3)=0., 0., 0.;
+    
+    CP1(1,1:3)=-1., 0., 1.; 
+    CP1(2,1:3)=1., 1., 1.; 
+    CP1(3,1:3)=0., 0., 0.;
+    
+    CP2(1,1:3)=-1., 0., 1.; 
+    CP2(2,1:3)=1., 1., 1.; 
+    CP2(3,1:3)=0., 0., 0.;
+    
+    CP3(1,1:4)=-1., 0., 0.5, 1.; 
+    CP3(2,1:4)=-1., -1., -0.2, 1.; 
+    CP3(3,1:4)=0., 0., 0., 0.;
+    
+    CP4(1,1:3)=-1., 0., 1.; 
+    CP4(2,1:3)=-1., -1., 1.; 
+    CP4(3,1:3)=0., 0., 0.;
+    
+    REVN=1.; EFF=0.9; EFF1=0.8; J=1.; HMOM=0.; REV=0.;
+  ENDIF
+END
+!!eb
+
+!!bb EVENTs
+
+EVENT _CalcSensor
+  type = REG; replace = 1; turn_on = 1;
+  IF first THEN first = 0; ENDIF
+  
+  _sensor(1) = _s_valve;                 
+  _sensor(2) = "($W.CH1(1,2),1);         
+  _sensor(3) = _kgs_current;             
+  _sensor(4:20) = 0.;
+END
+
+EVENT _ControlValve
+  TYPE = 0; REPLACE = 1; TURN_ON = 1;
+  IF (TAU > _time_step) THEN
+    _s_valve = _s_valve + 0.01;
+    _time_step = _time_step + 10.0;
+    S.VAL1 = _s_valve;
+    IF (_s_valve > 1.0) THEN _s_valve = 1.0; S.VAL1 = 1.0; ENDIF
+  ENDIF
+END
+
+EVENT _PumpControl
+  TYPE = 6; REPLACE = 1; TURN_ON = 1;
+  DP.CPUMP1 = 21.5 * 9810.;
+  DPDQ.CPUMP1 = (1.5 * 9810.) / (20.5/3600.);
+END
+
+EVENT _KgsSwitcher
+  TYPE = 0; REPLACE = 1; TURN_ON = 1;
+  IF (TAU > _kgs_time_step) THEN
+    _kgs_index = _kgs_index + 1;
+    _kgs_time_step = _kgs_time_step + 1000.0;
+    IF (_kgs_index > 5) THEN
+      _kgs_index = 5;
+    ELSE
+      _kgs_current = _kgs_array(_kgs_index);
+      CSI1.LR1 = _kgs_current;
+      CSI2.LR1 = _kgs_current;
+      
+      ! --- ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ ---
+      _s_valve = 0.0;             ! Сбрасываем клапан в 0
+      _time_step = TAU + 10.0;    ! Сбрасываем таймер открытия
+      S.VAL1 = 0.0;               ! Закрываем клапан в самой модели
+      ! ------------------------------------
+    ENDIF
+  ENDIF
+END
+!!eb
+
+!!bb OUTPUTs
+OUTPUT _Out
+WRITE DT,_tOffset,_pi,_gg,_xgAir,_xgN2,_kgs,_MPa,_kPa,_MWt,_kWt,_atm,
+  dt_out,dt_max,dt_diag,_monPer,dt_sav,restart,_tauRest,_sensor;
+END
+!!eb
