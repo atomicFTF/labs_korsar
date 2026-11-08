@@ -1,0 +1,68 @@
+restart = 0;
+title   = 'VD.035.004 Плоская стенка (Вариант А)';
+
+dt_max  = 0.01;
+dt_out  = 0.01;
+fin_tim = 100.0;
+
+L_s   = 0.020;
+lam_v = 16.0;
+rho   = 7800.0;
+cp    = 500.0;
+cr_v  = rho * cp;
+T0    = 293.15;
+Tb    = 393.15;
+
+layout
+  hcs1(1)/1 - bheat1;
+  hcs1(1)/2 - bheat2;
+end
+
+call hcs1;
+call bheat1;
+call bheat2;
+
+set jump;
+
+out a;
+
+end
+
+event jump
+  BCOND.BHEAT1(1) = Tb;
+end
+
+data hcs1
+  n = 1;
+  kl = 10;
+  k = 11;
+  type = 0;
+  coor = 0;
+  
+  xl(1:11) = LINA(0., L_s, 11);
+  x(1:11) = LINA(0., L_s, 11);
+  
+  do i = 1, kl;
+    lam(1,i) = lam_v;
+    cr(1,i)  = cr_v;
+  enddo;
+  
+  qx(1:10) = 0.;
+  dfz(1) = L_s;
+  qz(1) = 0.;
+end
+
+data bheat1
+  type = 1;
+  bcond(1:2) = T0;
+end
+
+! ВАРИАНТ А: заданная температура на правой стенке
+data bheat2
+  type = 1;
+  bcond(1:2) = T0;
+end
+
+output a
+  write T.HCS1;
+end

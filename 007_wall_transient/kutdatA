@@ -1,0 +1,11 @@
+format = 6;
+begin
+  out result
+end
+end
+
+output result
+  write1 tau, T.HCS1(1,1), T.HCS1(2,1), T.HCS1(3,1), T.HCS1(4,1);
+  write1 T.HCS1(5,1), T.HCS1(6,1), T.HCS1(7,1), T.HCS1(8,1);
+  write1 T.HCS1(9,1), T.HCS1(10,1), T.HCS1(11,1);
+end
